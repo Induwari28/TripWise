@@ -22,7 +22,7 @@ interface Trip {
   end_date: string
   budget: string
   number_of_people: number
-  days: Day[] // NEW: React now expects the nested itinerary data
+  days: Day[] 
 }
 
 function App() {
@@ -38,13 +38,16 @@ function App() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [budget, setBudget] = useState('')
+  
+  // AI Generation State
+  const [generatingId, setGeneratingId] = useState<number | null>(null)
 
   // Fetch trips when the token changes
   useEffect(() => {
     if (token) {
       setLoading(true)
       axios.get('http://127.0.0.1:8000/api/trips/', {
-        headers: { Authorization: `Bearer ${token}` } // Attach token here!
+        headers: { Authorization: `Bearer ${token}` } 
       })
         .then(response => {
           setTrips(response.data)
@@ -57,7 +60,7 @@ function App() {
     }
   }, [token])
 
-// Handle user login
+  // Handle user login
   const handleLogin = (e: FormEvent) => {
     e.preventDefault()
     axios.post('http://127.0.0.1:8000/api/token/', { username, password })
@@ -67,7 +70,6 @@ function App() {
         setToken(accessToken)
       })
       .catch(error => {
-        // THIS IS THE NEW ERROR CHECKING LOGIC
         if (error.response) {
           alert(`Django Rejected It! Status: ${error.response.status}\nDetails: ${JSON.stringify(error.response.data)}`)
         } else {
@@ -80,7 +82,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('access_token')
     setToken(null)
-    setTrips([]) // Clear data from screen
+    setTrips([]) 
   }
 
   // Handle new trip creation
@@ -92,17 +94,35 @@ function App() {
       end_date: endDate,
       budget: budget,
       number_of_people: 1
-      // Notice we removed user: 1 here, Django handles it now!
     }
 
     axios.post('http://127.0.0.1:8000/api/trips/', newTrip, {
-      headers: { Authorization: `Bearer ${token}` } // Attach token here!
+      headers: { Authorization: `Bearer ${token}` } 
     })
       .then(response => {
         setTrips([...trips, response.data])
         setDestination(''); setStartDate(''); setEndDate(''); setBudget('')
       })
       .catch(error => console.error("Error creating trip:", error))
+  }
+
+  // Handle AI Itinerary Generation
+  const handleGenerateItinerary = (tripId: number) => {
+    setGeneratingId(tripId) // Triggers the loading spinner
+    
+    axios.post(`http://127.0.0.1:8000/api/trips/${tripId}/generate_itinerary/`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(response => {
+        // Replace the old trip in our state with the new AI-generated one
+        setTrips(trips.map(trip => trip.id === tripId ? response.data : trip))
+        setGeneratingId(null) // Stop loading
+      })
+      .catch(error => {
+        console.error("AI Error:", error)
+        alert("Failed to generate itinerary. Check the Django terminal for errors!")
+        setGeneratingId(null)
+      })
   }
 
   // -------------------------------------------------------------
@@ -144,8 +164,7 @@ function App() {
         </form>
       </div>
       
-        
-        {/* NEW: Map Section */}
+        {/* Map Section */}
       <TripMap trips={trips} />
 
       <div className="trip-grid">
@@ -154,8 +173,28 @@ function App() {
             <h2>{trip.destination}</h2>
             <p>Dates: {trip.start_date} to {trip.end_date}</p>
             <p>Budget: Rs. {trip.budget}</p>
+            <p>Travelers: {trip.number_of_people}</p>
             
-            {/* NEW: Itinerary Section */}
+            {/* NEW: AI Generation Button */}
+            <button 
+              onClick={() => handleGenerateItinerary(trip.id)}
+              disabled={generatingId === trip.id}
+              style={{
+                backgroundColor: generatingId === trip.id ? '#555' : '#673ab7', 
+                color: 'white',
+                padding: '10px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: generatingId === trip.id ? 'not-allowed' : 'pointer',
+                marginTop: '10px',
+                width: '100%',
+                fontWeight: 'bold'
+              }}
+            >
+              {generatingId === trip.id ? '✨ Gemini is thinking...' : '✨ Generate AI Itinerary'}
+            </button>
+            
+            {/* Itinerary Section */}
             {trip.days && trip.days.length > 0 && (
               <div className="itinerary" style={{ marginTop: '15px', padding: '15px', backgroundColor: '#111', borderRadius: '6px' }}>
                 <h3 style={{ marginTop: 0, borderBottom: '1px solid #333', paddingBottom: '5px' }}>Itinerary</h3>
