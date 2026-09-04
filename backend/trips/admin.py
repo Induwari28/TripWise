@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import Trip, Day, Place
 
-# Register your models here.
+admin.site.register(Trip)
+admin.site.register(Day)
+admin.site.register(Place)
