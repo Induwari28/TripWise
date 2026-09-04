@@ -12,12 +12,14 @@ class DaySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Day
-        fields = '__all__'
+        fields = ['id', 'date', 'weather_condition', 'places'] 
+
+
 
 class TripSerializer(serializers.ModelSerializer):
-    # This tells Django to fetch all days linked to this trip
     days = DaySerializer(many=True, read_only=True)
-
+    
     class Meta:
         model = Trip
         fields = '__all__'
+        read_only_fields = ['user'] # <--- THIS FIXES THE BUG

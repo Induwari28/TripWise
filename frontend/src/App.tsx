@@ -12,6 +12,7 @@ interface Place {
 interface Day {
   id: number
   date: string
+  weather_condition?: string // <--- ADDED THIS SO TYPESCRIPT KNOWS IT EXISTS
   places: Place[]
 }
 
@@ -201,7 +202,11 @@ function App() {
                 
                 {trip.days.map(day => (
                   <div key={day.id} style={{ marginBottom: '10px' }}>
-                    <strong style={{ color: '#4CAF50' }}>{day.date}</strong>
+                    
+                    {/* ADDED CONDITIONAL WEATHER CHECK HERE */}
+                    <h4 className="text-green-500 font-bold mb-2">
+                       {day.date} {day.weather_condition && `— ☁️ ${day.weather_condition}`}
+                    </h4>
                     
                     <ul style={{ margin: '5px 0', paddingLeft: '20px', color: '#ccc' }}>
                       {day.places && day.places.length > 0 ? (
