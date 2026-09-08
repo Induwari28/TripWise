@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import type { Trip } from '../types';
+import { ArrowLeft, Wallet, Receipt, Sparkles, MapPin, Calendar, Plus, BrainCircuit, Camera } from 'lucide-react';
 
 interface Props {
   trips: Trip[];
@@ -13,15 +14,21 @@ interface Props {
 export default function TripDetailsPage({ trips, setTrips, token }: Props) {
   const { id } = useParams<{ id: string }>();
   const [generating, setGenerating] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Find the specific trip from the URL ID
+  // Controlled states for the Expense Form so AI can auto-fill them
+  const [expenseTitle, setExpenseTitle] = useState('');
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseCategory, setExpenseCategory] = useState('Food');
+
   const trip = trips.find(t => t.id === parseInt(id || '0'));
 
   if (!trip) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '50px', color: 'white' }}>
+      <div style={{ textAlign: 'center', marginTop: '50px', color: 'var(--text-dark)' }}>
         <h2>Trip not found!</h2>
-        <Link to="/" style={{ color: '#4CAF50' }}>Return to Dashboard</Link>
+        <Link to="/" style={{ color: 'var(--primary)', fontWeight: 600 }}>Return to Dashboard</Link>
       </div>
     );
   }
@@ -31,16 +38,47 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
   const remainingBudget = totalBudget - totalSpent;
   const spentPercentage = Math.min((totalSpent / totalBudget) * 100, 100);
 
+  // --- AI Receipt Scanner Logic ---
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setScanning(true);
+    const formData = new FormData();
+    formData.append('receipt', file);
+
+    axios.post('http://127.0.0.1:8000/api/scan_receipt/', formData, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    .then(response => {
+      // Auto-fill the form fields with Gemini's vision extraction
+      setExpenseTitle(response.data.title || '');
+      setExpenseAmount(response.data.amount || '');
+      
+      const validCategories = ["Food", "Transport", "Accommodation", "Activities", "Other"];
+      if (validCategories.includes(response.data.category)) {
+        setExpenseCategory(response.data.category);
+      }
+      setScanning(false);
+    })
+    .catch(error => {
+      console.error("Error scanning receipt:", error);
+      alert("Failed to scan receipt. Ensure the image is clear.");
+      setScanning(false);
+    });
+  };
+
+  // --- Manual/Auto-filled Submission ---
   const handleAddExpense = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-
     const newExpense = {
       trip: trip.id,
-      title: formData.get('title'),
-      amount: formData.get('amount'),
-      category: formData.get('category')
+      title: expenseTitle,
+      amount: expenseAmount,
+      category: expenseCategory
     };
 
     axios.post('http://127.0.0.1:8000/api/expenses/', newExpense, {
@@ -54,7 +92,10 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
           }
           return t;
         }));
-        form.reset();
+        // Clear the form after saving
+        setExpenseTitle('');
+        setExpenseAmount('');
+        setExpenseCategory('Food');
       })
       .catch(error => console.error("Error adding expense:", error));
   };
@@ -75,100 +116,155 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
   };
 
   return (
-    <div className="trip-details-container" style={{ maxWidth: '800px', margin: '0 auto', color: 'white' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
       
-      <Link to="/" style={{ color: '#aaa', textDecoration: 'none', display: 'inline-block', marginBottom: '20px' }}>
-        ← Back to Dashboard
+      <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '24px', fontWeight: 600, transition: 'color 0.2s' }}>
+        <ArrowLeft size={18} /> Back to Dashboard
       </Link>
 
-      <div style={{ border: '1px solid #555', padding: '20px', borderRadius: '8px', backgroundColor: '#222', textAlign: 'center' }}>
-        <h2 style={{ margin: '0 0 10px 0' }}>{trip.destination}</h2>
-        <p style={{ margin: 0, color: '#aaa' }}>Dates: {trip.start_date} to {trip.end_date}</p>
+      <div className="bento-card" style={{ marginBottom: '24px', background: 'linear-gradient(135deg, var(--primary), #4f46e5)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: '2.4rem' }}>{trip.destination}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', opacity: 0.9 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={18}/> {trip.start_date} to {trip.end_date}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={18}/> {trip.number_of_people} Traveler(s)</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px' }}>
         
-        {/* Budget Tracker UI */}
-        <div style={{ backgroundColor: '#111', padding: '15px', borderRadius: '8px', marginTop: '20px', border: '1px solid #444', textAlign: 'left' }}>
-          <h3 style={{ marginTop: 0 }}>Budget Tracker</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span><strong>Limit:</strong> Rs. {totalBudget.toFixed(2)}</span>
-            <span style={{ color: remainingBudget < 0 ? '#f44336' : '#4CAF50' }}>
-              <strong>Remaining:</strong> Rs. {remainingBudget.toFixed(2)}
-            </span>
-          </div>
+        {/* === LEFT COLUMN: BUDGET & EXPENSES === */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
-          {/* Progress Bar */}
-          <div style={{ width: '100%', backgroundColor: '#444', height: '10px', borderRadius: '5px', marginBottom: '15px' }}>
-            <div style={{ 
-              width: `${spentPercentage}%`, 
-              backgroundColor: spentPercentage > 90 ? '#f44336' : '#4CAF50', 
-              height: '100%', 
-              borderRadius: '5px',
-              transition: 'width 0.3s ease'
-            }}></div>
+          <div className="bento-card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <Wallet size={24} color="var(--primary)" />
+              <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-dark)' }}>Budget Tracker</h2>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '1rem' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Limit: <strong>Rs. {totalBudget.toLocaleString()}</strong></span>
+              <span style={{ color: remainingBudget < 0 ? 'var(--danger)' : 'var(--success)', fontWeight: 600 }}>
+                Remaining: Rs. {remainingBudget.toLocaleString()}
+              </span>
+            </div>
+            <div style={{ width: '100%', backgroundColor: '#e2e8f0', height: '12px', borderRadius: '6px', overflow: 'hidden' }}>
+              <div style={{ width: `${spentPercentage}%`, backgroundColor: spentPercentage > 90 ? 'var(--danger)' : 'var(--primary)', height: '100%', borderRadius: '6px', transition: 'width 0.4s ease' }}></div>
+            </div>
+            <p style={{ margin: '8px 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'right' }}>{spentPercentage.toFixed(1)}% Spent</p>
           </div>
 
-          {/* Add Expense Form */}
-          <form onSubmit={handleAddExpense} style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-            <input type="text" name="title" placeholder="What did you buy?" required style={{ flex: 1, padding: '8px' }} />
-            <input type="number" name="amount" placeholder="Amount" step="0.01" required style={{ width: '100px', padding: '8px' }} />
-            <select name="category" required style={{ width: '130px', padding: '8px' }}>
-              <option value="Food">Food</option>
-              <option value="Transport">Transport</option>
-              <option value="Accommodation">Accommodation</option>
-              <option value="Activities">Activities</option>
-              <option value="Other">Other</option>
-            </select>
-            <button type="submit" style={{ backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px', padding: '8px 15px', cursor: 'pointer' }}>Add</button>
-          </form>
+          <div className="bento-card" style={{ flex: 1 }}>
+            
+            {/* Updated Header with Scan Button */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Receipt size={24} color="var(--primary)" /> Expense Ledger
+              </h3>
+              
+              {/* Hidden File Input */}
+              <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileUpload} style={{ display: 'none' }} />
+              
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={scanning}
+                style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)', border: 'none', borderRadius: '20px', padding: '6px 14px', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: scanning ? 'not-allowed' : 'pointer' }}
+              >
+                {scanning ? <BrainCircuit size={16} className="animate-pulse" /> : <Camera size={16} />} 
+                {scanning ? 'Scanning...' : 'Scan Receipt'}
+              </button>
+            </div>
 
-          {/* Expense List */}
-          {trip.expenses && trip.expenses.length > 0 && (
-            <ul style={{ padding: 0, listStyle: 'none', margin: 0, fontSize: '0.9em' }}>
-              {trip.expenses.map(exp => (
-                <li key={exp.id} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', padding: '8px 0' }}>
-                  <span>{exp.title} <span style={{ color: '#888', fontSize: '0.8em' }}>({exp.category})</span></span>
-                  <span>Rs. {parseFloat(exp.amount).toFixed(2)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+            {/* Controlled Expense Form */}
+            <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+              <input type="text" placeholder="What did you buy?" required value={expenseTitle} onChange={e => setExpenseTitle(e.target.value)} style={{ padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', width: '100%' }} />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <input type="number" placeholder="Amount (Rs.)" step="0.01" required value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} style={{ padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', flex: 1 }} />
+                <select required value={expenseCategory} onChange={e => setExpenseCategory(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', flex: 1, backgroundColor: 'white' }}>
+                  <option value="Food">Food</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Accommodation">Accommodation</option>
+                  <option value="Activities">Activities</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <button type="submit" style={{ backgroundColor: 'var(--text-dark)', color: 'white', border: 'none', borderRadius: '6px', padding: '10px', fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
+                <Plus size={16} /> Save Expense
+              </button>
+            </form>
+
+            {/* Expense List */}
+            {trip.expenses && trip.expenses.length > 0 ? (
+              <ul style={{ padding: 0, listStyle: 'none', margin: 0 }}>
+                {trip.expenses.map(exp => (
+                  <li key={exp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', padding: '12px 0' }}>
+                    <div>
+                      <p style={{ margin: '0 0 4px 0', fontWeight: 500, color: 'var(--text-dark)' }}>{exp.title}</p>
+                      <span style={{ fontSize: '0.75rem', backgroundColor: '#e2e8f0', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '12px' }}>{exp.category}</span>
+                    </div>
+                    <span style={{ fontWeight: 600, color: 'var(--text-dark)' }}>Rs. {parseFloat(exp.amount).toLocaleString()}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '20px' }}>No expenses logged yet.</p>
+            )}
+          </div>
         </div>
 
-        <button 
-          onClick={handleGenerateItinerary}
-          disabled={generating}
-          style={{ backgroundColor: generating ? '#555' : '#673ab7', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: generating ? 'not-allowed' : 'pointer', marginTop: '20px', width: '100%', fontWeight: 'bold', fontSize: '1.1em' }}
-        >
-          {generating ? '✨ Gemini is thinking...' : '✨ Generate AI Itinerary'}
-        </button>
-        
-        {/* Itinerary Section */}
-        {trip.days && trip.days.length > 0 && (
-          <div className="itinerary" style={{ marginTop: '20px', padding: '15px', backgroundColor: '#111', borderRadius: '6px', textAlign: 'left' }}>
-            
-            {/* AI Budget Alert Banner */}
+        {/* === RIGHT COLUMN: ITINERARY === */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="bento-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <MapPin size={24} color="var(--primary)"/> Trip Itinerary
+              </h2>
+              <button 
+                onClick={handleGenerateItinerary}
+                disabled={generating}
+                style={{ backgroundColor: generating ? '#e2e8f0' : 'var(--primary-light)', color: generating ? 'var(--text-muted)' : 'var(--primary)', padding: '8px 16px', border: 'none', borderRadius: '20px', cursor: generating ? 'not-allowed' : 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                {generating ? <BrainCircuit size={16} className="animate-pulse" /> : <Sparkles size={16} />} 
+                {generating ? 'AI is thinking...' : 'Generate AI Plan'}
+              </button>
+            </div>
+
             {trip.budget_alert && (
-              <div style={{ padding: '12px 16px', backgroundColor: '#3f51b533', borderLeft: '4px solid #7c4dff', marginBottom: '15px', borderRadius: '4px' }}>
-                <strong style={{ color: '#b388ff' }}>🤖 AI Budget Insight:</strong> {trip.budget_alert}
+              <div style={{ padding: '16px', backgroundColor: 'var(--primary-light)', borderLeft: '4px solid var(--primary)', marginBottom: '24px', borderRadius: '0 8px 8px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', marginBottom: '4px' }}>
+                  <BrainCircuit size={18} />
+                  <strong style={{ fontSize: '0.95rem' }}>AI Budget Insight</strong>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-dark)', lineHeight: 1.5 }}>{trip.budget_alert}</p>
               </div>
             )}
 
-            <h3 style={{ marginTop: 0, borderBottom: '1px solid #333', paddingBottom: '10px', textAlign: 'center' }}>Itinerary</h3>
-            {trip.days.map(day => (
-              <div key={day.id} style={{ marginBottom: '15px' }}>
-                <h4 className="text-green-500 font-bold mb-2" style={{ color: '#aaa', textAlign: 'center' }}>
-                  {day.date} {day.weather_condition && `— ☁️ ${day.weather_condition}`}
-                </h4>
-                <ul style={{ margin: '5px 0', paddingLeft: '20px', color: '#ccc' }}>
-                  {day.places && day.places.length > 0 ? (
-                    day.places.map(place => <li key={place.id} style={{ marginBottom: '5px' }}>{place.name}</li>)
-                  ) : (
-                    <li style={{ color: '#777', listStyle: 'none', textAlign: 'center' }}>No places added yet</li>
-                  )}
-                </ul>
+            {trip.days && trip.days.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {trip.days.map(day => (
+                  <div key={day.id} style={{ backgroundColor: '#f8fafc', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '16px' }}>
+                    <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-dark)', fontSize: '1.05rem', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                      {day.date} {day.weather_condition && <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>☁️ {day.weather_condition}</span>}
+                    </h4>
+                    <ul style={{ margin: 0, paddingLeft: '24px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {day.places && day.places.length > 0 ? (
+                        day.places.map(place => <li key={place.id} style={{ color: 'var(--text-dark)' }}>{place.name}</li>)
+                      ) : (
+                        <li style={{ listStyle: 'none', marginLeft: '-24px', color: '#94a3b8', fontSize: '0.9rem' }}>No activities planned yet.</li>
+                      )}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                <Sparkles size={40} style={{ opacity: 0.2, marginBottom: '16px' }} />
+                <p style={{ margin: 0 }}>Click "Generate AI Plan" to let Gemini build your itinerary based on your budget limit.</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
       </div>
     </div>
   );

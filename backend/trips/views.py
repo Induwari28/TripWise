@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime, timedelta
-from google import genai
+from google import genai as modern_genai
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,6 +9,13 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Trip, Day, Place, Expense
 from .serializers import TripSerializer, DaySerializer, PlaceSerializer, ExpenseSerializer
 from .utils import get_weather_forecast
+from rest_framework.decorators import api_view, permission_classes
+from django.conf import settings
+from PIL import Image
+import google.generativeai as legacy_genai
+import json
+
+
 
 class TripViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -50,7 +57,7 @@ class TripViewSet(viewsets.ModelViewSet):
             remaining_budget = total_budget - total_spent
 
             # 3. Setup Gemini Client
-            client = genai.Client(api_key=api_key)
+            client = modern_genai.Client(api_key=api_key)
 
             # 4. Engineer the prompt
             prompt = f"""
@@ -148,3 +155,36 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def scan_receipt(request):
+    receipt_file = request.FILES.get('receipt')
+    if not receipt_file:
+        return Response({'error': 'No receipt image provided.'}, status=400)
+
+    try:
+        # Open the image using Pillow
+        image = Image.open(receipt_file)
+        
+        # Use the Flash model for fast multimodal vision tasks
+        model = legacy_genai.GenerativeModel('gemini-1.5-flash')
+        
+        prompt = """
+        Analyze this receipt and extract the following details.
+        Return ONLY a raw JSON object (no markdown, no backticks) with these exact keys:
+        - "title": Short name of the merchant or item (e.g., "Starbucks", "Uber").
+        - "amount": The total amount as a numeric string (e.g., "1500.00").
+        - "category": Must be exactly one of: "Food", "Transport", "Accommodation", "Activities", "Other".
+        """
+        
+        response = model.generate_content([prompt, image])
+        
+        # Clean up the response in case Gemini includes markdown formatting
+        text_response = response.text.replace('```json', '').replace('```', '').strip()
+        data = json.loads(text_response)
+        
+        return Response(data)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
