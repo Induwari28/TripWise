@@ -21,7 +21,15 @@ export default function App() {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(response => { setTrips(response.data); })
-        .catch(error => { console.error(error); });
+        .catch(error => {
+          if (axios.isAxiosError(error) && error.response?.status === 401) {
+            localStorage.removeItem('access_token');
+            setToken(null);
+            setTrips([]);
+            return;
+          }
+          console.error(error);
+        });
     }
   }, [token]);
 

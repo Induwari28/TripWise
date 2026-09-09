@@ -66,7 +66,10 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
     })
     .catch(error => {
       console.error("Error scanning receipt:", error);
-      alert("Failed to scan receipt. Ensure the image is clear.");
+      const message = axios.isAxiosError(error) && typeof error.response?.data?.error === 'string'
+        ? error.response.data.error
+        : "Failed to scan receipt. Ensure the image is clear.";
+      alert(message);
       setScanning(false);
     });
   };
