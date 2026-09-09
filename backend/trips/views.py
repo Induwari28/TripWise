@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime, timedelta
 from google import genai as modern_genai
+from google.genai import types as genai_types
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,7 +13,6 @@ from .utils import get_weather_forecast
 from rest_framework.decorators import api_view, permission_classes
 from django.conf import settings
 from PIL import Image
-import google.generativeai as legacy_genai
 import json
 
 
@@ -163,12 +163,20 @@ def scan_receipt(request):
     if not receipt_file:
         return Response({'error': 'No receipt image provided.'}, status=400)
 
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        return Response({'error': 'Gemini API key is missing from .env!'}, status=400)
+
     try:
-        # Open the image using Pillow
+        # Validate the upload and send it using the SDK's explicit image part format.
         image = Image.open(receipt_file)
-        
-        # Use the Flash model for fast multimodal vision tasks
-        model = legacy_genai.GenerativeModel('gemini-1.5-flash')
+        image.verify()
+        receipt_file.seek(0)
+        image_bytes = receipt_file.read()
+    except Exception:
+        return Response({'error': 'The uploaded file is not a valid image.'}, status=400)
+
+    try:
         
         prompt = """
         Analyze this receipt and extract the following details.
@@ -178,13 +186,31 @@ def scan_receipt(request):
         - "category": Must be exactly one of: "Food", "Transport", "Accommodation", "Activities", "Other".
         """
         
-        response = model.generate_content([prompt, image])
+        client = modern_genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',
+            contents=[
+                prompt,
+                genai_types.Part.from_bytes(
+                    data=image_bytes,
+                    mime_type=receipt_file.content_type or 'image/jpeg',
+                ),
+            ],
+        )
         
-        # Clean up the response in case Gemini includes markdown formatting
-        text_response = response.text.replace('```json', '').replace('```', '').strip()
-        data = json.loads(text_response)
+        # Extract the JSON object even if the model adds markdown or commentary.
+        text_response = (response.text or '').strip()
+        start = text_response.find('{')
+        end = text_response.rfind('}')
+        if start == -1 or end <= start:
+            return Response({'error': 'Gemini returned no valid JSON.'}, status=502)
+        try:
+            data = json.loads(text_response[start:end + 1])
+        except json.JSONDecodeError:
+            return Response({'error': 'Gemini returned malformed JSON.'}, status=502)
         
         return Response(data)
         
     except Exception as e:
-        return Response({'error': str(e)}, status=500)
+        print(f"Receipt scan failed: {e}")
+        return Response({'error': f'Receipt scanning failed: {e}'}, status=502)
