@@ -7,7 +7,6 @@ import type { Trip } from './types';
 import MainLayout from './layouts/MainLayout';
 import HomePage from './pages/HomePage';
 import TripDetailsPage from './pages/TripDetailsPage';
-// 1. Add these imports at the top
 import MyTripsPage from './pages/MyTripsPage';
 import WalletPage from './pages/WalletPage';
 import FavoritesPage from './pages/FavoritesPage';
