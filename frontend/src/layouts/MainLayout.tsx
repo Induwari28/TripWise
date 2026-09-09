@@ -36,7 +36,7 @@ export default function MainLayout({ onLogout }: Props) {
             <Home size={22} /> Dashboard
           </NavLink>
           
-          <NavLink to="/trips" style={({ isActive }) => ({
+          <NavLink to="/my-trips" style={({ isActive }) => ({
             display: 'flex', alignItems: 'center', gap: '16px', padding: '14px 20px', borderRadius: 'var(--radius-md)',
             textDecoration: 'none', color: isActive ? 'white' : 'var(--text-muted)',
             backgroundColor: isActive ? 'var(--primary)' : 'transparent', fontWeight: 500, transition: 'all 0.2s'

@@ -7,6 +7,11 @@ import type { Trip } from './types';
 import MainLayout from './layouts/MainLayout';
 import HomePage from './pages/HomePage';
 import TripDetailsPage from './pages/TripDetailsPage';
+// 1. Add these imports at the top
+import MyTripsPage from './pages/MyTripsPage';
+import WalletPage from './pages/WalletPage';
+import FavoritesPage from './pages/FavoritesPage';
+import SettingsPage from './pages/SettingsPage';
 
 
 export default function App() {
@@ -69,7 +74,10 @@ export default function App() {
         <Route element={<MainLayout onLogout={handleLogout} />}>
         <Route path="/" element={<HomePage trips={trips} setTrips={setTrips} token={token} />} />
         <Route path="/trip/:id" element={<TripDetailsPage trips={trips} setTrips={setTrips} token={token} />} />
-          
+        <Route path="/my-trips" element={<MyTripsPage token={token} />} />
+        <Route path="/wallet" element={<WalletPage token={token} />} />
+        <Route path="/favorites" element={<FavoritesPage />} />
+        <Route path="/settings" element={<SettingsPage token={token} />} />
       </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

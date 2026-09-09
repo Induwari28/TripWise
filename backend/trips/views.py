@@ -12,6 +12,9 @@ from .serializers import TripSerializer, DaySerializer, PlaceSerializer, Expense
 from .utils import get_weather_forecast
 from rest_framework.decorators import api_view, permission_classes
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from PIL import Image
 import json
 
@@ -155,6 +158,28 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def profile(request):
+    if request.method == 'GET':
+        return Response({
+            'username': request.user.username,
+            'email': request.user.email,
+        })
+
+    email = str(request.data.get('email', '')).strip()
+    if not email:
+        return Response({'error': 'Email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        validate_email(email)
+    except ValidationError:
+        return Response({'error': 'Enter a valid email address.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    request.user.email = email
+    request.user.save(update_fields=['email'])
+    return Response({'username': request.user.username, 'email': request.user.email})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

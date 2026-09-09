@@ -11,5 +11,6 @@ router.register(r'expenses', ExpenseViewSet) # <--- NEW ROUTE
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('profile/', views.profile, name='profile'),
     path('scan_receipt/', views.scan_receipt, name='scan_receipt'),
 ]

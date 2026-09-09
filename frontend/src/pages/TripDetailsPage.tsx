@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import type { Trip } from '../types';
-import { ArrowLeft, Wallet, Receipt, Sparkles, MapPin, Calendar, Plus, BrainCircuit, Camera } from 'lucide-react';
+import { ArrowLeft, Wallet, Receipt, Sparkles, MapPin, Calendar, Plus, BrainCircuit, Camera, Heart } from 'lucide-react';
 
 interface Props {
   trips: Trip[];
@@ -26,12 +26,32 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
 
   if (!trip) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '50px', color: 'var(--text-dark)' }}>
-        <h2>Trip not found!</h2>
-        <Link to="/" style={{ color: 'var(--primary)', fontWeight: 600 }}>Return to Dashboard</Link>
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <h2>Trip not found</h2>
+        <Link to="/">Return to Dashboard</Link>
       </div>
     );
   }
+
+  const handleAddToFavorites = () => {
+    const saved = localStorage.getItem('tripwise_favorites');
+    const currentFavorites = saved ? JSON.parse(saved) : [];
+    const newFavorite = {
+      id: trip.id,
+      name: trip.destination,
+      location: `${trip.start_date} to ${trip.end_date}`,
+      rating: 5.0,
+      tags: ['Saved Itinerary'],
+    };
+
+    const isDuplicate = currentFavorites.some((favorite: { name: string }) => favorite.name === trip.destination);
+    if (!isDuplicate) {
+      localStorage.setItem('tripwise_favorites', JSON.stringify([...currentFavorites, newFavorite]));
+      alert(`${trip.destination} has been added to your Favorites!`);
+    } else {
+      alert(`${trip.destination} is already in your Favorites.`);
+    }
+  };
 
   const totalBudget = parseFloat(trip.budget);
   const totalSpent = (trip.expenses || []).reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
@@ -133,6 +153,14 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={18}/> {trip.number_of_people} Traveler(s)</span>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={handleAddToFavorites}
+          title="Add to favorites"
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', border: 'none', borderRadius: '10px', backgroundColor: 'white', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer' }}
+        >
+          <Heart size={18} /> Favorite
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px' }}>

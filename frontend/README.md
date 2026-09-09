@@ -1,31 +1,33 @@
-# ✈️ TripWise: AI-Powered Travel Planner & Financial Dashboard
+# React + TypeScript + Vite
 
-TripWise is a full-stack web application that combines automated travel planning with intelligent budget tracking. 
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-Built with a modern "Bento Box" design system, the application leverages Google's Gemini AI to generate structured, multi-day itineraries and utilizes Gemini Vision to automatically extract data from uploaded receipt images. Daily destinations and real-world driving routes are dynamically plotted on an interactive map.
+Currently, two official plugins are available:
 
-## ✨ Features
-* **AI Itinerary Generation:** Integrates Google Gemini 1.5 Flash to automatically research and plan realistic, multi-day vacations based on budget constraints.
-* **Multimodal Receipt Scanner:** Upload receipt photos to automatically extract the merchant name, total amount, and category directly into your expense ledger.
-* **Interactive Map Routing:** Plots AI-generated GPS coordinates onto a Leaflet map and draws real-world driving paths between daily destinations using the OSRM API.
-* **Bento Box UI:** A responsive, modern dashboard architecture featuring CSS Grid-based widget cards and clean, accessible typography.
-* **Secure Authentication:** Implements JSON Web Tokens (JWT) for secure user login and session management.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## 🛠️ Tech Stack
-**Frontend**
-* React (Vite)
-* TypeScript
-* React Router (Multi-Page Architecture)
-* Leaflet Maps & OSRM API
+## React Compiler
 
-**Backend**
-* Django & Django REST Framework (Python)
-* PostgreSQL
-* Python Pillow (Image Processing)
-* JWT (djangorestframework-simplejwt)
-* Google GenAI SDK
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## 🧠 Technical Highlights
-* **Multimodal Data Extraction:** Engineered a pipeline that securely handles image uploads, passes them to Gemini Vision for analysis, and strictly outputs parseable JSON to auto-fill frontend React state variables.
-* **Strict Prompt Engineering:** Engineered the Gemini AI text prompt to bypass standard markdown responses and strictly output parseable JSON containing accurate, localized latitudes and longitudes.
-* **Geospatial Data Flow:** Seamlessly routes complex nested JSON from a third-party AI, through a Django REST API, into a relational PostgreSQL database (Trip → Day → Place), and finally renders dynamic coordinates and route geometry on the frontend.
+## Expanding the Oxlint configuration
+
+If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+
+```json
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
+```
+
+See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+ 
