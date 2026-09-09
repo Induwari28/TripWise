@@ -1,4 +1,5 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { Home, Heart, Ticket, Wallet, Settings, Search, LogOut } from 'lucide-react';
 
 interface Props {
@@ -6,6 +7,22 @@ interface Props {
 }
 
 export default function MainLayout({ onLogout }: Props) {
+  // 1. Initialize the navigation hook
+  const navigate = useNavigate();
+  
+  // 2. Initialize the search state
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // 3. Create the search function
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+      alert(`Searching your database for: ${searchQuery}`);
+      // Optional: clear the bar after searching by uncommenting the line below
+      // setSearchQuery(''); 
+    }
+  };
+  
+
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       
@@ -74,10 +91,15 @@ export default function MainLayout({ onLogout }: Props) {
           <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', marginBottom: '24px', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(124, 58, 237, 0.4)' }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>Travel Like a Pro</h3>
             <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', opacity: 0.9 }}>AI will put together a dream trip that feels like destiny.</p>
-            <button style={{ backgroundColor: 'white', color: 'var(--primary)', border: 'none', width: '100%', padding: '10px', borderRadius: '8px', fontWeight: 'bold' }}>Booking Now</button>
+            <button 
+              onClick={() => navigate('/')}
+              style={{ backgroundColor: 'white', color: 'var(--primary)', border: 'none', width: '100%', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              Booking Now
+            </button>
           </div>
           
-          <button onClick={onLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', width: '100%', padding: '14px', border: 'none', backgroundColor: '#fef2f2', color: 'var(--danger)', borderRadius: 'var(--radius-md)', fontWeight: 600 }}>
+          <button onClick={onLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', width: '100%', padding: '14px', border: 'none', backgroundColor: '#fef2f2', color: 'var(--danger)', borderRadius: 'var(--radius-md)', fontWeight: 600, cursor: 'pointer' }}>
             <LogOut size={20} /> Log Out
           </button>
         </div>
@@ -98,7 +120,14 @@ export default function MainLayout({ onLogout }: Props) {
           {/* Search Bar */}
           <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'white', padding: '12px 20px', borderRadius: '30px', width: '350px', boxShadow: 'var(--shadow-sm)' }}>
             <Search size={20} color="var(--text-muted)" style={{ marginRight: '12px' }} />
-            <input type="text" placeholder="Search Destination..." style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.95rem', color: 'var(--text-dark)' }} />
+            <input 
+              type="text" 
+              placeholder="Search Destination..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.95rem', color: 'var(--text-dark)' }} 
+            />
           </div>
 
           {/* Profile */}
@@ -115,7 +144,7 @@ export default function MainLayout({ onLogout }: Props) {
 
         {/* Page Content Injection */}
         <main style={{ flex: 1, padding: '0 40px 40px 40px', overflowY: 'auto' }}>
-          <Outlet />
+          <Outlet context={{ searchQuery }} />
         </main>
 
       </div>
