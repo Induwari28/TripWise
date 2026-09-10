@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import type { Trip } from '../types';
 import TripMap from '../components/TripMap';
@@ -13,6 +13,7 @@ interface Props {
 }
 
 export default function HomePage({ trips, setTrips, token }: Props) {
+  const { searchQuery } = useOutletContext<{ searchQuery: string }>();
   const [destination, setDestination] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -30,9 +31,12 @@ export default function HomePage({ trips, setTrips, token }: Props) {
       .catch(error => console.error(error));
   };
 
-  // Isolate trips for the layout
-  const featuredTrip = trips.length > 0 ? trips[trips.length - 1] : null; // Most recent trip
-  const upcomingTrips = trips.length > 1 ? trips.slice(0, trips.length - 1).reverse() : [];
+  // 4. Filter trips based on search query and prepare display lists
+  const filteredTrips = trips.filter((trip) =>
+    trip.destination.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const featuredTrip = filteredTrips.length > 0 ? filteredTrips[filteredTrips.length - 1] : null;
+  const upcomingTrips = filteredTrips.length > 1 ? filteredTrips.slice(0, filteredTrips.length - 1).reverse() : [];
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
@@ -77,7 +81,11 @@ export default function HomePage({ trips, setTrips, token }: Props) {
           </div>
         ) : (
           <div className="bento-card" style={{ minHeight: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
-            <h2>Create a trip to see your featured plan!</h2>
+            {searchQuery ? (
+              <h2>No trips found matching "{searchQuery}"</h2>
+            ) : (
+              <h2>Create a trip to see your featured plan!</h2>
+            )}
           </div>
         )}
 
@@ -88,8 +96,7 @@ export default function HomePage({ trips, setTrips, token }: Props) {
             <span style={{ fontSize: '0.85rem', color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}>Expand Map</span>
           </div>
           <div style={{ height: '300px', width: '100%' }}>
-            {/* Your exact Leaflet component, constrained beautifully inside the card */}
-            <TripMap trips={trips} />
+            <TripMap trips={filteredTrips} />
           </div>
         </div>
 
@@ -154,7 +161,9 @@ export default function HomePage({ trips, setTrips, token }: Props) {
                 </div>
               ))
             ) : (
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '20px' }}>No other upcoming trips.</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '20px' }}>
+                 {searchQuery ? "No matches found." : "No other upcoming trips."}
+              </p>
             )}
           </div>
         </div>

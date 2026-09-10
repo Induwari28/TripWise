@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { Home, Heart, Ticket, Wallet, Settings, Search, LogOut } from 'lucide-react';
 
@@ -7,21 +7,8 @@ interface Props {
 }
 
 export default function MainLayout({ onLogout }: Props) {
-  // 1. Initialize the navigation hook
-  const navigate = useNavigate();
-  
-  // 2. Initialize the search state
+  const navigate = useNavigate(); // <--- MAKE SURE THIS IS HERE!
   const [searchQuery, setSearchQuery] = useState('');
-
-  // 3. Create the search function
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchQuery.trim() !== '') {
-      alert(`Searching your database for: ${searchQuery}`);
-      // Optional: clear the bar after searching by uncommenting the line below
-      // setSearchQuery(''); 
-    }
-  };
-  
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
@@ -92,8 +79,8 @@ export default function MainLayout({ onLogout }: Props) {
             <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>Travel Like a Pro</h3>
             <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', opacity: 0.9 }}>AI will put together a dream trip that feels like destiny.</p>
             <button 
-              onClick={() => navigate('/')}
-              style={{ backgroundColor: 'white', color: 'var(--primary)', border: 'none', width: '100%', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                 onClick={() => navigate('/')}
+                 style={{ backgroundColor: 'white', color: 'var(--primary)', border: 'none', width: '100%', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               Booking Now
             </button>
@@ -125,7 +112,6 @@ export default function MainLayout({ onLogout }: Props) {
               placeholder="Search Destination..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearch}
               style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.95rem', color: 'var(--text-dark)' }} 
             />
           </div>

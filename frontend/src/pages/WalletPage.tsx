@@ -26,17 +26,24 @@ export default function WalletPage({ token }: Props) {
     };
 
     fetchFinancials();
-  }, []);
+  }, [token]);
 
   // Calculate aggregated totals
   const totalBudget = trips.reduce((sum, trip) => sum + Number(trip.budget || 0), 0);
   
-  // Assuming each trip has a nested 'expenses' array from your Django serializer
   const totalSpent = trips.reduce((sum, trip) => {
     const tripExpenses = trip.expenses || [];
     const tripTotal = tripExpenses.reduce((expSum: number, exp: any) => expSum + Number(exp.amount), 0);
     return sum + tripTotal;
   }, 0);
+
+  // Extract ALL expenses into one global flat list and attach the trip name to each
+  const allExpenses = trips.flatMap(trip => 
+    (trip.expenses || []).map((exp: any) => ({
+      ...exp,
+      tripDestination: trip.destination // Keep track of which trip this belongs to!
+    }))
+  );
 
   const remainingBalance = totalBudget - totalSpent;
   const spendingPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
@@ -104,14 +111,36 @@ export default function WalletPage({ token }: Props) {
 
           </div>
 
-          {/* Recent Transactions Placeholder */}
+          {/* Global Expense Ledger */}
           <div className="bento-card" style={{ padding: '32px', backgroundColor: 'white', borderRadius: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
             <h2 style={{ margin: '0 0 24px 0', fontSize: '1.4rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Receipt size={24} color="var(--primary)" /> Global Expense Ledger
             </h2>
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', backgroundColor: '#f9fafb', borderRadius: '16px' }}>
-              <p style={{ margin: 0 }}>All of your AI-scanned receipts will aggregate here.</p>
-            </div>
+            
+            {allExpenses.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
+                {allExpenses.map((expense: any, index: number) => (
+                  <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid var(--border-color)', transition: 'transform 0.2s' }}>
+                    <div>
+                      {/* Looks for a description, title, or defaults to "Receipt Item" */}
+                      <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-dark)', fontSize: '1rem' }}>
+                        {expense.description || expense.title || expense.name || 'Receipt Item'}
+                      </h4>
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        Trip: {expense.tripDestination}
+                      </p>
+                    </div>
+                    <div style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '1.1rem' }}>
+                      Rs. {Number(expense.amount).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', backgroundColor: '#f9fafb', borderRadius: '16px' }}>
+                <p style={{ margin: 0 }}>All of your AI-scanned receipts will aggregate here.</p>
+              </div>
+            )}
           </div>
         </>
       )}
