@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -16,7 +16,16 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// --- NEW: AI Routing Component ---
+// --- NEW: Helper component to make the map fly to the searched location ---
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 10, { animate: true, duration: 1.5 });
+  }, [center, map]);
+  return null;
+}
+
+// --- AI Routing Component ---
 function TripRoute({ places, color }: { places: Place[], color: string }) {
   const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
 
@@ -76,6 +85,10 @@ export default function TripMap({ trips }: Props) {
 
   return (
     <MapContainer center={center} zoom={8} style={{ height: '100%', width: '100%', borderRadius: '16px', zIndex: 1 }}>
+      
+      {/* This one line makes the map zoom and pan dynamically! */}
+      <MapUpdater center={center} />
+
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"

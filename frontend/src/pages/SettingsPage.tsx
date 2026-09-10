@@ -17,7 +17,7 @@ export default function SettingsPage({ token }: Props) {
   });
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/profile/', {
+    axios.get('https://tripwise-cknt.onrender.com/api/profile/', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(({ data }) => {
@@ -33,7 +33,7 @@ export default function SettingsPage({ token }: Props) {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.patch('http://127.0.0.1:8000/api/profile/', {
+      await axios.patch('https://tripwise-cknt.onrender.com/api/profile/', {
         email: profile.email,
       }, {
         headers: { Authorization: `Bearer ${token}` },

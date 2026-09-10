@@ -14,7 +14,7 @@ export default function WalletPage({ token }: Props) {
   useEffect(() => {
     const fetchFinancials = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/trips/', {
+        const response = await axios.get('https://tripwise-cknt.onrender.com/api/trips/', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setTrips(response.data);

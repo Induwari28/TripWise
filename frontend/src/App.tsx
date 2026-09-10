@@ -21,7 +21,7 @@ export default function App() {
 
   useEffect(() => {
     if (token) {
-      axios.get('http://127.0.0.1:8000/api/trips/', {
+      axios.get('https://tripwise-cknt.onrender.com/api/trips/', {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(response => { setTrips(response.data); })
@@ -39,7 +39,7 @@ export default function App() {
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
-    axios.post('http://127.0.0.1:8000/api/token/', { username, password })
+    axios.post('https://tripwise-cknt.onrender.com/api/token/', { username, password })
       .then(response => {
         const accessToken = response.data.access;
         localStorage.setItem('access_token', accessToken);

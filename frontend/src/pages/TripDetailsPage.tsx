@@ -67,7 +67,7 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
     const formData = new FormData();
     formData.append('receipt', file);
 
-    axios.post('http://127.0.0.1:8000/api/scan_receipt/', formData, {
+    axios.post('https://tripwise-cknt.onrender.com/api/scan_receipt/', formData, {
       headers: { 
         Authorization: `Bearer ${token}`,
         'Content-Type': 'multipart/form-data'
@@ -104,7 +104,7 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
       category: expenseCategory
     };
 
-    axios.post('http://127.0.0.1:8000/api/expenses/', newExpense, {
+    axios.post('https://tripwise-cknt.onrender.com/api/expenses/', newExpense, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(response => {
@@ -125,7 +125,7 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
 
   const handleGenerateItinerary = () => {
     setGenerating(true);
-    axios.post(`http://127.0.0.1:8000/api/trips/${trip.id}/generate_itinerary/`, {}, {
+    axios.post(`https://tripwise-cknt.onrender.com/api/trips/${trip.id}/generate_itinerary/`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(response => {

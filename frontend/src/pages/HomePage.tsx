@@ -23,7 +23,7 @@ export default function HomePage({ trips, setTrips, token }: Props) {
     e.preventDefault();
     const newTrip = { destination, start_date: startDate, end_date: endDate, budget, number_of_people: 1 };
 
-    axios.post('http://127.0.0.1:8000/api/trips/', newTrip, { headers: { Authorization: `Bearer ${token}` } })
+    axios.post('https://tripwise-cknt.onrender.com/api/trips/', newTrip, { headers: { Authorization: `Bearer ${token}` } })
       .then(response => {
         setTrips([...trips, response.data]);
         setDestination(''); setStartDate(''); setEndDate(''); setBudget('');
