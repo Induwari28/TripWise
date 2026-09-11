@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Settings, User, Bell, Shield, Moon, Save } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 interface Props {
   token: string;
 }
 
 export default function SettingsPage({ token }: Props) {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => localStorage.getItem('darkMode') === 'true');
+  const [pushEnabled, setPushEnabled] = useState(false);
+
   // Form state for user preferences
   const [profile, setProfile] = useState({
     name: 'Induwari',
@@ -17,7 +21,7 @@ export default function SettingsPage({ token }: Props) {
   });
 
   useEffect(() => {
-    axios.get('https://tripwise-cknt.onrender.com/api/profile/', {
+    axios.get(`${API_BASE_URL}/profile/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(({ data }) => {
@@ -30,10 +34,40 @@ export default function SettingsPage({ token }: Props) {
       .catch((error) => console.error('Error loading profile:', error));
   }, [token]);
 
+  useEffect(() => {
+    localStorage.setItem('darkMode', String(isDarkMode));
+
+    if (isDarkMode) {
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+    }
+  }, [isDarkMode]);
+
+  const handlePushToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked;
+
+    if (checked) {
+      if ('Notification' in window) {
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            setPushEnabled(true);
+          } else {
+            setPushEnabled(false);
+          }
+        });
+      } else {
+        setPushEnabled(false);
+      }
+    } else {
+      setPushEnabled(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.patch('https://tripwise-cknt.onrender.com/api/profile/', {
+      await axios.patch(`${API_BASE_URL}/profile/`, {
         email: profile.email,
       }, {
         headers: { Authorization: `Bearer ${token}` },
@@ -109,8 +143,8 @@ export default function SettingsPage({ token }: Props) {
                 </div>
                 <input 
                   type="checkbox" 
-                  checked={profile.notifications}
-                  onChange={(e) => setProfile({...profile, notifications: e.target.checked})}
+                  checked={pushEnabled}
+                  onChange={handlePushToggle}
                   style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }}
                 />
               </div>
@@ -125,8 +159,8 @@ export default function SettingsPage({ token }: Props) {
                 </div>
                 <input 
                   type="checkbox" 
-                  checked={profile.darkMode}
-                  onChange={(e) => setProfile({...profile, darkMode: e.target.checked})}
+                  checked={isDarkMode}
+                  onChange={(e) => setIsDarkMode(e.target.checked)}
                   style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }}
                 />
               </div>

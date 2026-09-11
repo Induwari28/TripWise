@@ -28,6 +28,63 @@ class TripViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    @action(detail=True, methods=['get'])
+    def recommend_next(self, request, pk=None):
+        trip = self.get_object()
+        api_key = os.environ.get('GEMINI_API_KEY')
+
+        if not api_key:
+            return Response({"error": "Gemini API key is missing from .env!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            total_budget = float(trip.budget or 0)
+            total_spent = sum(float(exp.amount or 0) for exp in trip.expenses.all())
+            remaining_budget = total_budget - total_spent
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+            client = modern_genai.Client(api_key=api_key)
+            prompt = (
+                f"Act as a smart travel guide. The user is currently on a trip to {trip.destination}. "
+                f"It is currently {current_time}. They have a remaining budget of Rs. {remaining_budget}. "
+                "Suggest exactly ONE specific, highly contextual activity or food recommendation they should do right now. "
+                "Keep it to 2-3 sentences and be engaging."
+            )
+
+            response = client.models.generate_content(
+                model='gemini-3.6-flash',
+                contents=prompt
+            )
+
+            text_response = (response.text or '').strip()
+            if text_response.startswith('```json'):
+                text_response = text_response[len('```json'):].strip()
+            if text_response.startswith('```'):
+                text_response = text_response[3:].strip()
+            if text_response.endswith('```'):
+                text_response = text_response[:-3].strip()
+
+            # The Gemini model may reply with a JSON object, a JSON object wrapped in
+            # markdown fences, or plain prose. Handle all of those safely.
+            cleaned = text_response.strip()
+            if cleaned.startswith('{') and cleaned.endswith('}'):
+                try:
+                    payload = json.loads(cleaned)
+                    recommendation = payload.get('recommendation') or payload.get('text') or cleaned
+                    recommendation = str(recommendation).strip()
+                except Exception:
+                    recommendation = cleaned
+            else:
+                recommendation = cleaned
+
+            if not recommendation:
+                return Response({"error": "The recommendation service returned an empty reply."}, status=status.HTTP_502_BAD_GATEWAY)
+
+            return Response({"recommendation": recommendation})
+
+        except Exception as exc:
+            print(f"💎 GEMINI RECOMMEND NEXT ERROR: {str(exc)}")
+            return Response({"error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(detail=True, methods=['post'])
     def generate_itinerary(self, request, pk=None):
         trip = self.get_object()
@@ -42,16 +99,16 @@ class TripViewSet(viewsets.ModelViewSet):
             end = datetime.strptime(str(trip.end_date), '%Y-%m-%d')
             delta = end - start
             
-            weather_dict = {} 
+            weather_dict = {}
             weather_report = []
-            
+
             for i in range(delta.days + 1):
                 current_date = (start + timedelta(days=i)).strftime('%Y-%m-%d')
                 condition = get_weather_forecast(trip.destination, current_date)
                 if condition:
                     weather_dict[current_date] = condition
                     weather_report.append(f"{current_date}: {condition}")
-            
+
             weather_context = "\n".join(weather_report) if weather_report else "Weather data unavailable."
 
             # --- NEW: 2. Calculate Financial Context ---
@@ -124,9 +181,9 @@ class TripViewSet(viewsets.ModelViewSet):
             for day_data in data.get("days", []):
                 day_date = day_data["date"]
                 day = Day.objects.create(
-                    trip=trip, 
+                    trip=trip,
                     date=day_date,
-                    weather_condition=weather_dict.get(day_date, "Unknown")
+                    weather_condition=weather_dict.get(day_date, '')
                 )
                 for place_data in day_data.get("places", []):
                     Place.objects.create(

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Ticket, Calendar, Wallet, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import type { Trip } from '../types';
 
 interface Props {
@@ -16,7 +17,7 @@ export default function MyTripsPage({ token }: Props) {
     // Fetch all trips from the Django backend
     const fetchTrips = async () => {
       try {
-        const response = await axios.get('https://tripwise-cknt.onrender.com/api/trips/', {
+        const response = await axios.get(`${API_BASE_URL}/trips/`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

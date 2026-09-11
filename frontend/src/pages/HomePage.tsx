@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import type { Trip } from '../types';
 import TripMap from '../components/TripMap';
 import { MapPin, Calendar, DollarSign, Sparkles, Navigation, ArrowRight } from 'lucide-react';
@@ -23,7 +24,7 @@ export default function HomePage({ trips, setTrips, token }: Props) {
     e.preventDefault();
     const newTrip = { destination, start_date: startDate, end_date: endDate, budget, number_of_people: 1 };
 
-    axios.post('https://tripwise-cknt.onrender.com/api/trips/', newTrip, { headers: { Authorization: `Bearer ${token}` } })
+    axios.post(`${API_BASE_URL}/trips/`, newTrip, { headers: { Authorization: `Bearer ${token}` } })
       .then(response => {
         setTrips([...trips, response.data]);
         setDestination(''); setStartDate(''); setEndDate(''); setBudget('');

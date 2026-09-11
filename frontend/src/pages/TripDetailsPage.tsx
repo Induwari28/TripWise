@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import type { Trip } from '../types';
 import { ArrowLeft, Wallet, Receipt, Sparkles, MapPin, Calendar, Plus, BrainCircuit, Camera, Heart } from 'lucide-react';
 
@@ -15,6 +16,8 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
   const { id } = useParams<{ id: string }>();
   const [generating, setGenerating] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [isRecommending, setIsRecommending] = useState(false);
+  const [liveRecommendation, setLiveRecommendation] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Controlled states for the Expense Form so AI can auto-fill them
@@ -67,7 +70,7 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
     const formData = new FormData();
     formData.append('receipt', file);
 
-    axios.post('https://tripwise-cknt.onrender.com/api/scan_receipt/', formData, {
+    axios.post(`${API_BASE_URL}/scan_receipt/`, formData, {
       headers: { 
         Authorization: `Bearer ${token}`,
         'Content-Type': 'multipart/form-data'
@@ -104,7 +107,7 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
       category: expenseCategory
     };
 
-    axios.post('https://tripwise-cknt.onrender.com/api/expenses/', newExpense, {
+    axios.post(`${API_BASE_URL}/expenses/`, newExpense, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(response => {
@@ -125,7 +128,7 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
 
   const handleGenerateItinerary = () => {
     setGenerating(true);
-    axios.post(`https://tripwise-cknt.onrender.com/api/trips/${trip.id}/generate_itinerary/`, {}, {
+    axios.post(`${API_BASE_URL}/trips/${trip.id}/generate_itinerary/`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(response => {
@@ -135,6 +138,35 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
       .catch(() => {
         alert("Failed to generate itinerary.");
         setGenerating(false);
+      });
+  };
+
+  const handleRecommendNext = () => {
+    if (!trip) return;
+
+    setIsRecommending(true);
+    setLiveRecommendation(null);
+
+    axios.get(`${API_BASE_URL}/trips/${trip.id}/recommend_next/`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(response => {
+        const recommendation = typeof response.data?.recommendation === 'string'
+          ? response.data.recommendation.trim()
+          : '';
+        setLiveRecommendation(recommendation || null);
+      })
+      .catch(error => {
+        console.error('Failed to fetch recommendation:', error);
+        const status = axios.isAxiosError(error) ? error.response?.status : null;
+        if (status === 404) {
+          setLiveRecommendation('The recommendation route is not available on the current deployed backend. Please redeploy the latest backend code or switch to the local API server.');
+        } else {
+          setLiveRecommendation(null);
+        }
+      })
+      .finally(() => {
+        setIsRecommending(false);
       });
   };
 
@@ -207,11 +239,11 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
             </div>
 
             {/* Controlled Expense Form */}
-            <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+            <form className="expense-form-card" onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
               <input type="text" placeholder="What did you buy?" required value={expenseTitle} onChange={e => setExpenseTitle(e.target.value)} style={{ padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', width: '100%' }} />
               <div style={{ display: 'flex', gap: '12px' }}>
                 <input type="number" placeholder="Amount (Rs.)" step="0.01" required value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} style={{ padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', flex: 1 }} />
-                <select required value={expenseCategory} onChange={e => setExpenseCategory(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', flex: 1, backgroundColor: 'white' }}>
+                <select required value={expenseCategory} onChange={e => setExpenseCategory(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', flex: 1, backgroundColor: 'var(--bg-card)' }}>
                   <option value="Food">Food</option>
                   <option value="Transport">Transport</option>
                   <option value="Accommodation">Accommodation</option>
@@ -260,6 +292,34 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
               </button>
             </div>
 
+            <button
+              type="button"
+              onClick={handleRecommendNext}
+              disabled={isRecommending}
+              className="recommend-now-button"
+              style={{ width: '100%', marginBottom: '14px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '14px', padding: '12px 16px', fontWeight: 700, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: isRecommending ? 'not-allowed' : 'pointer' }}
+            >
+              <Sparkles size={18} />
+              {isRecommending ? 'Gemini is analyzing...' : 'What should I do now?'}
+            </button>
+
+            {liveRecommendation && (
+              <div className="ai-recommendation-card" style={{ position: 'relative', marginBottom: '16px', padding: '16px', backgroundColor: 'var(--primary-light)', border: '1px solid var(--border-color)', borderRadius: '14px', color: 'var(--text-dark)' }}>
+                <button
+                  type="button"
+                  aria-label="Dismiss recommendation"
+                  onClick={() => setLiveRecommendation(null)}
+                  style={{ position: 'absolute', right: '10px', top: '10px', background: 'transparent', border: 'none', color: 'var(--text-dark)', fontSize: '1.1rem', cursor: 'pointer' }}
+                >
+                  ×
+                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: 700, marginBottom: '8px' }}>
+                  <Sparkles size={16} /> Live Recommendation
+                </div>
+                <p style={{ margin: '0', color: 'var(--text-dark)', lineHeight: 1.6 }}>{liveRecommendation}</p>
+              </div>
+            )}
+
             {trip.budget_alert && (
               <div style={{ padding: '16px', backgroundColor: 'var(--primary-light)', borderLeft: '4px solid var(--primary)', marginBottom: '24px', borderRadius: '0 8px 8px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', marginBottom: '4px' }}>
@@ -272,20 +332,28 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
 
             {trip.days && trip.days.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {trip.days.map(day => (
-                  <div key={day.id} style={{ backgroundColor: '#f8fafc', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '16px' }}>
-                    <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-dark)', fontSize: '1.05rem', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-                      {day.date} {day.weather_condition && <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>☁️ {day.weather_condition}</span>}
-                    </h4>
-                    <ul style={{ margin: 0, paddingLeft: '24px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {day.places && day.places.length > 0 ? (
-                        day.places.map(place => <li key={place.id} style={{ color: 'var(--text-dark)' }}>{place.name}</li>)
-                      ) : (
-                        <li style={{ listStyle: 'none', marginLeft: '-24px', color: '#94a3b8', fontSize: '0.9rem' }}>No activities planned yet.</li>
-                      )}
-                    </ul>
-                  </div>
-                ))}
+                {trip.days.map(day => {
+                  const rawWeather = typeof day.weather_condition === 'string' ? day.weather_condition.trim() : '';
+                  const normalizedWeather = rawWeather.toLowerCase();
+                  const containsFallback = normalizedWeather === 'unknown' || normalizedWeather === 'none' || normalizedWeather === '';
+                  const visibleWeather = containsFallback ? 'Weather unavailable' : rawWeather;
+
+                  return (
+                    <div key={day.id} className="itinerary-day-card" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '16px' }}>
+                      <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-dark)', fontSize: '1.05rem', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                        {day.date}
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>☁️ {visibleWeather}</span>
+                      </h4>
+                      <ul style={{ margin: 0, paddingLeft: '24px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {day.places && day.places.length > 0 ? (
+                          day.places.map(place => <li key={place.id} style={{ color: 'var(--text-dark)' }}>{place.name}</li>)
+                        ) : (
+                          <li style={{ listStyle: 'none', marginLeft: '-24px', color: '#94a3b8', fontSize: '0.9rem' }}>No activities planned yet.</li>
+                        )}
+                      </ul>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
+import { API_BASE_URL } from './config';
 import type { Trip } from './types';
 import MainLayout from './layouts/MainLayout';
 import HomePage from './pages/HomePage';
@@ -21,7 +22,7 @@ export default function App() {
 
   useEffect(() => {
     if (token) {
-      axios.get('https://tripwise-cknt.onrender.com/api/trips/', {
+      axios.get(`${API_BASE_URL}/trips/`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(response => { setTrips(response.data); })
@@ -39,7 +40,7 @@ export default function App() {
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
-    axios.post('https://tripwise-cknt.onrender.com/api/token/', { username, password })
+    axios.post(`${API_BASE_URL}/token/`, { username, password })
       .then(response => {
         const accessToken = response.data.access;
         localStorage.setItem('access_token', accessToken);

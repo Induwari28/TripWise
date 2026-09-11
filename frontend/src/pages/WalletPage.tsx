@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Wallet, TrendingDown, CreditCard, Receipt } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import type { Trip } from '../types';
 
 interface Props {
@@ -14,7 +15,7 @@ export default function WalletPage({ token }: Props) {
   useEffect(() => {
     const fetchFinancials = async () => {
       try {
-        const response = await axios.get('https://tripwise-cknt.onrender.com/api/trips/', {
+        const response = await axios.get(`${API_BASE_URL}/trips/`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setTrips(response.data);
@@ -120,7 +121,7 @@ export default function WalletPage({ token }: Props) {
             {allExpenses.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
                 {allExpenses.map((expense: any, index: number) => (
-                  <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid var(--border-color)', transition: 'transform 0.2s' }}>
+                  <div key={index} className="ledger-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', transition: 'transform 0.2s' }}>
                     <div>
                       {/* Looks for a description, title, or defaults to "Receipt Item" */}
                       <h4 style={{ margin: '0 0 4px 0', color: 'var(--text-dark)', fontSize: '1rem' }}>

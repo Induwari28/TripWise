@@ -43,6 +43,124 @@ body {
   overflow-x: hidden;
 }
 
+body.dark-theme {
+  --bg-app: #0f172a;
+  --bg-card: #111827;
+  --bg-sidebar: #111827;
+  --text-dark: #f8fafc;
+  --text-muted: #cbd5e1;
+  --border-color: #334155;
+  --primary-light: #312e81;
+  color: var(--text-dark);
+  background-color: var(--bg-app);
+}
+
+body.dark-theme,
+body.dark-theme .app-layout,
+body.dark-theme .top-header,
+body.dark-theme .main-content,
+body.dark-theme .sidebar {
+  background-color: var(--bg-app);
+}
+
+body.dark-theme .bento-card {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-dark) !important;
+}
+
+body.dark-theme .sidebar {
+  background-color: var(--bg-sidebar);
+  border-color: var(--border-color);
+}
+
+body.dark-theme .dream-form__input-wrap,
+body.dark-theme .home-schedule-card__trip {
+  background-color: #1e293b;
+  border-color: var(--border-color);
+}
+
+body.dark-theme input,
+body.dark-theme select,
+body.dark-theme textarea {
+  background-color: #1e293b !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.dark-theme .search-bar {
+  background-color: #1e293b;
+}
+
+body.dark-theme .search-bar input {
+  background-color: transparent;
+  color: var(--text-dark);
+}
+
+/* Settings dark-theme contrast rules */
+body.dark-theme .settings-page .bento-card {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+  box-shadow: none !important;
+}
+
+body.dark-theme .settings-page .bento-card h1,
+body.dark-theme .settings-page .bento-card h2,
+body.dark-theme .settings-page .bento-card h3,
+body.dark-theme .settings-page .bento-card p,
+body.dark-theme .settings-page .bento-card label,
+body.dark-theme .settings-page .bento-card small,
+body.dark-theme .settings-page .bento-card span,
+body.dark-theme .settings-page .bento-card strong {
+  color: #f8fafc !important;
+}
+
+body.dark-theme .settings-page input,
+body.dark-theme .settings-page select {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+body.dark-theme .settings-page input::placeholder,
+body.dark-theme .settings-page select {
+  color: #cbd5e1 !important;
+}
+
+body.dark-theme .settings-page button {
+  color: #f8fafc !important;
+}
+
+.ledger-item,
+.itinerary-day-card,
+.expense-form-card {
+  background-color: #ffffff;
+  color: var(--text-dark);
+}
+
+body.dark-theme .ledger-item,
+body.dark-theme .itinerary-day-card,
+body.dark-theme .expense-form-card {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+body.dark-theme .ledger-item h4,
+body.dark-theme .ledger-item p,
+body.dark-theme .ledger-item div,
+body.dark-theme .itinerary-day-card h4,
+body.dark-theme .itinerary-day-card li,
+body.dark-theme .itinerary-day-card ul,
+body.dark-theme .expense-form-card {
+  color: #f8fafc !important;
+}
+
+body.dark-theme .settings-page .bento-card [type='checkbox'] {
+  accent-color: var(--primary);
+}
+
 /* --- Global Button Reset --- */
 button {
   font-family: inherit;
