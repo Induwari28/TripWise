@@ -7,14 +7,15 @@ interface Props {
 }
 
 export default function MainLayout({ onLogout }: Props) {
-  const navigate = useNavigate(); // <--- MAKE SURE THIS IS HERE!
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+    <div className="app-layout" style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       
       {/* --- LEFT SIDEBAR --- */}
-      <aside style={{ 
+      {/* 2. Added className="sidebar" */}
+      <aside className="sidebar" style={{ 
         width: '260px', 
         backgroundColor: 'var(--bg-sidebar)', 
         borderRight: '1px solid var(--border-color)',
@@ -23,7 +24,8 @@ export default function MainLayout({ onLogout }: Props) {
         padding: '24px 16px' 
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 12px', marginBottom: '40px' }}>
+        {/* 3. Added className="sidebar-header" */}
+        <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 12px', marginBottom: '40px' }}>
           <div style={{ width: '40px', height: '40px', backgroundColor: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>
             W
           </div>
@@ -37,7 +39,8 @@ export default function MainLayout({ onLogout }: Props) {
             textDecoration: 'none', color: isActive ? 'white' : 'var(--text-muted)',
             backgroundColor: isActive ? 'var(--primary)' : 'transparent', fontWeight: 500, transition: 'all 0.2s'
           })}>
-            <Home size={22} /> Dashboard
+            {/* Wrapped text in <span> */}
+            <Home size={22} /> <span>Dashboard</span>
           </NavLink>
           
           <NavLink to="/my-trips" style={({ isActive }) => ({
@@ -45,7 +48,8 @@ export default function MainLayout({ onLogout }: Props) {
             textDecoration: 'none', color: isActive ? 'white' : 'var(--text-muted)',
             backgroundColor: isActive ? 'var(--primary)' : 'transparent', fontWeight: 500, transition: 'all 0.2s'
           })}>
-            <Ticket size={22} /> My Trips
+            {/* Wrapped text in <span> */}
+            <Ticket size={22} /> <span>My Trips</span>
           </NavLink>
 
           <NavLink to="/wallet" style={({ isActive }) => ({
@@ -53,7 +57,8 @@ export default function MainLayout({ onLogout }: Props) {
             textDecoration: 'none', color: isActive ? 'white' : 'var(--text-muted)',
             backgroundColor: isActive ? 'var(--primary)' : 'transparent', fontWeight: 500, transition: 'all 0.2s'
           })}>
-            <Wallet size={22} /> Wallet
+            {/* Wrapped text in <span> */}
+            <Wallet size={22} /> <span>Wallet</span>
           </NavLink>
 
           <NavLink to="/favorites" style={({ isActive }) => ({
@@ -61,7 +66,8 @@ export default function MainLayout({ onLogout }: Props) {
             textDecoration: 'none', color: isActive ? 'white' : 'var(--text-muted)',
             backgroundColor: isActive ? 'var(--primary)' : 'transparent', fontWeight: 500, transition: 'all 0.2s'
           })}>
-            <Heart size={22} /> Favorites
+            {/* Wrapped text in <span> */}
+            <Heart size={22} /> <span>Favorites</span>
           </NavLink>
 
           <NavLink to="/settings" style={({ isActive }) => ({
@@ -69,12 +75,14 @@ export default function MainLayout({ onLogout }: Props) {
             textDecoration: 'none', color: isActive ? 'white' : 'var(--text-muted)',
             backgroundColor: isActive ? 'var(--primary)' : 'transparent', fontWeight: 500, transition: 'all 0.2s'
           })}>
-            <Settings size={22} /> Settings
+            {/* Wrapped text in <span> */}
+            <Settings size={22} /> <span>Settings</span>
           </NavLink>
         </nav>
 
         {/* Promo Card & Logout */}
-        <div style={{ marginTop: 'auto' }}>
+        {/* 4. Added className="sidebar-promo" */}
+        <div className="sidebar-promo" style={{ marginTop: 'auto' }}>
           <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', marginBottom: '24px', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(124, 58, 237, 0.4)' }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>Travel Like a Pro</h3>
             <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', opacity: 0.9 }}>AI will put together a dream trip that feels like destiny.</p>
@@ -96,7 +104,8 @@ export default function MainLayout({ onLogout }: Props) {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         
         {/* Top Header */}
-        <header style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', backgroundColor: 'var(--bg-app)' }}>
+        {/* 5. Added className="top-header" */}
+        <header className="top-header" style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', backgroundColor: 'var(--bg-app)' }}>
           
           {/* Greeting */}
           <div>
@@ -105,7 +114,8 @@ export default function MainLayout({ onLogout }: Props) {
           </div>
 
           {/* Search Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'white', padding: '12px 20px', borderRadius: '30px', width: '350px', boxShadow: 'var(--shadow-sm)' }}>
+          {/* 6. Added className="search-bar" */}
+          <div className="search-bar" style={{ display: 'flex', alignItems: 'center', backgroundColor: 'white', padding: '12px 20px', borderRadius: '30px', width: '350px', boxShadow: 'var(--shadow-sm)' }}>
             <Search size={20} color="var(--text-muted)" style={{ marginRight: '12px' }} />
             <input 
               type="text" 
@@ -129,7 +139,8 @@ export default function MainLayout({ onLogout }: Props) {
         </header>
 
         {/* Page Content Injection */}
-        <main style={{ flex: 1, padding: '0 40px 40px 40px', overflowY: 'auto' }}>
+        {/* 7. Added className="main-content" */}
+        <main className="main-content" style={{ flex: 1, padding: '0 40px 40px 40px', overflowY: 'auto' }}>
           <Outlet context={{ searchQuery }} />
         </main>
 
