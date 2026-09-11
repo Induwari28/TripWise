@@ -1,3 +1,35 @@
+/* Global layout classes */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 260px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+}
+
+.top-header {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  background-color: var(--bg-app);
+}
+
+.main-content {
+  flex: 1;
+  padding: 0 40px 40px 40px;
+  overflow-y: auto;
+}
+
 /* HomePage responsive class styling */
 .home-page {
   display: grid;
@@ -372,31 +404,34 @@
   }
 }
 
-/* Existing responsive rules continue below */
-/* TABLET & MOBILE VIEW (Screens smaller than 900px) */
+/* Mobile layout for all route pages */
 @media (max-width: 900px) {
-  /* 1. Stack the main layout vertically */
   .app-layout {
+    display: flex !important;
     flex-direction: column !important;
+    height: auto !important;
+    width: 100vw !important;
+    overflow-x: hidden !important;
   }
 
-  /* 2. Transform Sidebar into a Bottom Navigation Bar */
   .sidebar {
     width: 100% !important;
     height: 70px !important;
+    min-height: 70px !important;
     flex-direction: row !important;
     padding: 10px !important;
-    order: 3 !important;
     border-right: none !important;
     border-top: 1px solid var(--border-color);
-    position: fixed;
+    position: fixed !important;
     bottom: 0;
     left: 0;
     z-index: 1000;
     background-color: white;
+    box-shadow: 0 -3px 10px rgba(0,0,0,0.08);
   }
 
-  .sidebar-header, .sidebar-promo {
+  .sidebar-header,
+  .sidebar-promo {
     display: none !important;
   }
 
@@ -408,8 +443,9 @@
   }
 
   .sidebar nav a {
-    padding: 10px !important;
+    padding: 10px 12px !important;
     justify-content: center !important;
+    flex: 1;
   }
 
   .sidebar nav a span {
@@ -425,11 +461,125 @@
   }
 
   .search-bar {
-    width: 100% !important;
+    width: min(100%, 420px) !important;
   }
 
   .main-content {
-    padding: 20px !important;
-    margin-bottom: 70px !important;
+    padding: 16px 16px 92px !important;
+    overflow-y: visible !important;
+    margin-bottom: 0 !important;
+  }
+
+  .home-page,
+  .my-trips-page,
+  .wallet-page,
+  .favorites-page,
+  .settings-page,
+  .trip-details-page {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .home-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .home-page__left-column,
+  .home-page__right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .featured-trip-card {
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .featured-trip-card__footer {
+    flex-wrap: wrap;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .featured-trip-card__budget {
+    width: 100%;
+  }
+
+  .featured-trip-card__title {
+    font-size: clamp(1.8rem, 5vw, 2.3rem);
+  }
+
+  .featured-trip-card__link {
+    width: max-content;
+    align-self: flex-start;
+    margin-top: 12px;
+  }
+
+  .dream-form__date-grid {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .dream-form__date-grid .dream-form__input-wrap {
+    width: 100%;
+  }
+
+  .dream-form__input-wrap {
+    width: 100%;
+  }
+
+  .dream-form__submit {
+    width: 100%;
+  }
+
+  .home-schedule-card__trip {
+    align-items: flex-start;
+  }
+
+  .map-bento-card__map {
+    height: 260px;
+  }
+
+  .trip-details-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+  }
+
+  .trip-details-left-column,
+  .trip-details-right-column {
+    width: 100%;
+  }
+
+  .settings-page form > div,
+  .wallet-page > div,
+  .favorites-page > div,
+  .my-trips-page > div {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .settings-page form input,
+  .settings-page form select,
+  .settings-page form button,
+  .wallet-page input,
+  .wallet-page select,
+  .wallet-page button,
+  .trip-details-page input,
+  .trip-details-page select,
+  .trip-details-page button {
+    width: 100%;
+  }
+
+  .wallet-page .bento-card,
+  .settings-page .bento-card,
+  .favorites-page .bento-card,
+  .my-trips-page .bento-card {
+    width: 100%;
   }
 }

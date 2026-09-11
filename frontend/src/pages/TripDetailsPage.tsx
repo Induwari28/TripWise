@@ -139,7 +139,7 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
   };
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
+    <div className="trip-details-page" style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
       
       <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '24px', fontWeight: 600, transition: 'color 0.2s' }}>
         <ArrowLeft size={18} /> Back to Dashboard
@@ -163,10 +163,10 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px' }}>
+      <div className="trip-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px' }}>
         
         {/* === LEFT COLUMN: BUDGET & EXPENSES === */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="trip-details-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           <div className="bento-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
@@ -244,7 +244,7 @@ export default function TripDetailsPage({ trips, setTrips, token }: Props) {
         </div>
 
         {/* === RIGHT COLUMN: ITINERARY === */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="trip-details-right-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="bento-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '10px' }}>

@@ -21,7 +21,7 @@ export default function FavoritesPage() {
   };
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
+    <div className="favorites-page" style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
       
       {/* Header Card */}
       <div className="bento-card" style={{ marginBottom: '32px', background: 'linear-gradient(135deg, var(--danger), #f43f5e)', color: 'white', padding: '32px', borderRadius: '24px' }}>

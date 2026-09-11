@@ -35,7 +35,7 @@ export default function MyTripsPage({ token }: Props) {
   }, []);
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
+    <div className="my-trips-page" style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
       
       {/* Header Card */}
       <div className="bento-card" style={{ marginBottom: '32px', background: 'linear-gradient(135deg, var(--primary), #4f46e5)', color: 'white', padding: '32px', borderRadius: '24px' }}>

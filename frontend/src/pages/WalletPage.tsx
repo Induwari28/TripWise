@@ -49,7 +49,7 @@ export default function WalletPage({ token }: Props) {
   const spendingPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
+    <div className="wallet-page" style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '40px' }}>
       
       {/* Header Card */}
       <div className="bento-card" style={{ marginBottom: '24px', background: 'linear-gradient(135deg, var(--primary), #4f46e5)', color: 'white', padding: '32px', borderRadius: '24px' }}>
