@@ -16,9 +16,24 @@ class DaySerializer(serializers.ModelSerializer):
 
 # --- NEW: Expense Serializer ---
 class ExpenseSerializer(serializers.ModelSerializer):
+    paid_by = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    split_among = serializers.JSONField(required=False, allow_null=True)
+
     class Meta:
         model = Expense
-        fields = '__all__'
+        fields = ['id', 'trip', 'title', 'amount', 'category', 'date_added', 'paid_by', 'split_among']
+        read_only_fields = ['id', 'date_added']
+
+    def validate_paid_by(self, value):
+        return value or 'Induwari'
+
+    def validate_split_among(self, value):
+        return value or []
+
+    def create(self, validated_data):
+        validated_data['paid_by'] = validated_data.get('paid_by') or 'Induwari'
+        validated_data['split_among'] = validated_data.get('split_among') or []
+        return Expense.objects.create(**validated_data)
 
 class TripSerializer(serializers.ModelSerializer):
     days = DaySerializer(many=True, read_only=True)
