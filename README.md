@@ -7,6 +7,26 @@ Unlike static travel planners, TripWise evaluates real-time weather forecasts, c
 ## 🚀 Live Demo
 **[https://trip-wise-gules.vercel.app/]**
 
+## 📸 Project Preview
+
+
+### Dashboard & My Trips
+![Dashboard](copy%20img/Dashboard%20&%20My%20Trips.png)
+
+
+### My Trips Page
+![My Trips](copy%20img/MyTrip%20Page.png)
+
+
+### Trip Itinerary & AI Live Recommendations 
+![Trip Itinerary](copy%20img/Trip%20Itinerary%20.png)
+
+### Smart Map
+![Smart Map](copy%20img/smart%20map.png)
+
+### Favorites
+![Favorites](copy%20img/Favourite.png)
+
 ## 💡 Core Features
 * **AI Itinerary Generation:** Integrates Google Gemini (3.6 Flash) to automatically research and plan realistic, multi-day vacations mapped to a relational database.
 * **Dynamic Weather Replanning:** Uses WeatherAPI to detect rain and dynamically pushes outdoor activities to sunny days while prioritizing museums and cafes during storms.
